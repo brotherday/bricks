@@ -11,8 +11,27 @@ contract FractionsSelectorTest is Test {
         FS = new FractionsSelector();
     }
 
-    function testGetID() public view returns (bytes4) {
-        bytes4 value = FS.ifractionsID();
+    function testFractions() public view {
+        bytes4 value = FS.IFractionsID();
+
+        console.logBytes4(value);
+    }
+
+    function test165() public view {
+        bytes4 value = FS.ERC165ID();
+
+        console.logBytes4(value);
+    }
+
+    function test721ID() public view {
+        bytes4 value = FS.IERC72ID();
+
+        console.logBytes4(value);
+    }
+
+    function test1155ID() public view {
+        bytes4 value = FS.IERC1155ID();
+
         console.logBytes4(value);
     }
 }
