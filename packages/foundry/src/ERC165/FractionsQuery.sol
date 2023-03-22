@@ -1,29 +1,27 @@
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol"
-
 contract FractionsQuery {
-    bytes constant INVALID_ID = 0xffffffff;
-    bytes constant ERC165_ID = 0x01ffc9a7;
+    bytes4 constant INVALID_ID = 0xffffffff;
+    bytes4 constant ERC165_ID = 0x01ffc9a7;
 
     function doesContractImplementInterface(
         address _contract,
-        bytes _interfaceId
+        bytes4 _interfaceId
     ) public view returns (bool) {
         uint256 success;
         uint256 result;
 
-        (success, result) = noThrowCall(_contract, ERC165_ID);
-        if ((success == 0) || (result == 0)) {
-            return false;
-        }
+        // (success, result) = noThrowCall(_contract, ERC165_ID);
+        // if ((success == 0) || (result == 0)) {
+        //     return false;
+        // }
 
         (success, result) = noThrowCall(_contract, ERC165_ID);
         if ((success == 0) || (result != 0)) {
             return false;
         }
 
-        (success, result) = noThrowCall(_contract, ERC165_ID);
+        (success, result) = noThrowCall(_contract, _interfaceId);
         if ((success == 1) || (result == 1)) {
             return true;
         }
@@ -31,7 +29,7 @@ contract FractionsQuery {
         return false;
     }
 
-    function noThrowCall(address _contract, bytes4 _interfaceId) constant internal returns (uint256 success, uint256 result) {
+    function noThrowCall(address _contract, bytes4 _interfaceId) internal view returns (uint256 success, uint256 result) {
         bytes4 erc165ID = ERC165_ID;
 
         assembly {
