@@ -9,10 +9,9 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./IVault.sol";
 import "./Vault.sol";
 import "./IERCId.sol";
-import "./IFractionsId.sol";
 import "./ERC165/BricksQuery.sol";
 
-contract BricksCore is Initializable, BricksQuery, IERCId, IFractionsId {
+contract BricksCore is Initializable, BricksQuery, IERCId {
     event TokenFractioned(address fractionsAddress, uint256 totalSupply);
     event TokenAssembled(address contractAddress, uint256 tokenId);
 
