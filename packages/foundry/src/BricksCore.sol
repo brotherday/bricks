@@ -146,13 +146,6 @@ contract BricksCore is Initializable, BricksQuery, IERCId, IFractionsId {
         address receiver
     ) external {
         require(
-            doesContractImplementInterface(
-                fractionsContractAddress,
-                FRACTIONS_INTERFACE_ID
-            ),
-            "Contract does not support interface"
-        );
-        require(
             IERC20(fractionsContractAddress).allowance(
                 msg.sender,
                 address(this)

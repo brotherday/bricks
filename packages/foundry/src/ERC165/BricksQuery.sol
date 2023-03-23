@@ -8,7 +8,7 @@ contract BricksQuery {
     function doesContractImplementInterface(
         address _contract,
         bytes4 _interfaceId
-    ) external view returns (bool) {
+    ) public view returns (bool) {
         uint256 success;
         uint256 result;
 
