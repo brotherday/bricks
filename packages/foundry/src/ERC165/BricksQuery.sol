@@ -1,28 +1,22 @@
 pragma solidity ^0.8.0;
 
 contract BricksQuery {
-    bytes4 constant INVALID_ID = 0xffffffff;
-    bytes4 constant ERC165_ID = 0x01ffc9a7;
-    bytes4 constant IFRACTIONS_ID = 0x7d8d2ffd;
+    bytes4 constant InvalidID = 0xffffffff;
+    bytes4 constant ERC165ID = 0x01ffc9a7;
 
     function doesContractImplementInterface(
         address _contract,
         bytes4 _interfaceId
-    ) public view returns (bool) {
+    ) external view returns (bool) {
         uint256 success;
         uint256 result;
 
-        (success, result) = noThrowCall(_contract, ERC165_ID);
+        (success, result) = noThrowCall(_contract, ERC165ID);
         if ((success == 0) || (result == 0)) {
             return false;
         }
 
-        // (success, result) = noThrowCall(_contract, IFRACTIONS_ID);
-        // if ((success == 0) || (result == 0)) {
-        //     return false;
-        // }
-
-        (success, result) = noThrowCall(_contract, INVALID_ID);
+        (success, result) = noThrowCall(_contract, InvalidID);
         if ((success == 0) || (result != 0)) {
             return false;
         }
@@ -31,7 +25,6 @@ contract BricksQuery {
         if ((success == 1) || (result == 1)) {
             return true;
         }
-
         return false;
     }
 
@@ -39,7 +32,7 @@ contract BricksQuery {
         address _contract,
         bytes4 _interfaceId
     ) internal view returns (uint256 success, uint256 result) {
-        bytes4 erc165ID = ERC165_ID;
+        bytes4 erc165ID = ERC165ID;
 
         assembly {
             let x := mload(0x40) // Find empty storage location using "free memory pointer"
