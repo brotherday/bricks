@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 contract BricksQuery {
@@ -33,7 +34,6 @@ contract BricksQuery {
         bytes4 _interfaceId
     ) internal view returns (uint256 success, uint256 result) {
         bytes4 erc165ID = ERC165ID;
-
         assembly {
             let x := mload(0x40) // Find empty storage location using "free memory pointer"
             mstore(x, erc165ID) // Place signature at beginning of empty storage
