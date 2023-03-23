@@ -21,9 +21,11 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
     struct OriginalNFT {
         address contractAddress;
         uint256 tokenId;
+        address originalOwner;
     }
 
     mapping(address => OriginalNFT) public storedOriginal;
+    mapping(address => bool) public fractionsInitialized;
 
     /**
      * @dev     . Initializer function, can be called once when TransparentUpgradeableProxy is deployed
@@ -61,21 +63,10 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
         address receiver
     ) external returns (address) {
         require(
-            doesContractImplementInterface(
-                contractAddress,
-                ERC165_INTERFACE_ID
-            ),
-            "Contract does not support interface"
+            doesContractImplementInterface(contractAddress, ERC165_INTERFACE_ID), "Contract does not support interface"
         );
-        require(
-            IERC721(contractAddress).getApproved(tokenId) == address(this),
-            "token transfer not approved !"
-        );
-        IERC721(contractAddress).safeTransferFrom(
-            msg.sender,
-            vaultAddress,
-            tokenId
-        );
+        require(IERC721(contractAddress).getApproved(tokenId) == address(this), "token transfer not approved !");
+        IERC721(contractAddress).safeTransferFrom(msg.sender, vaultAddress, tokenId);
 
         Fractions fractions = new Fractions(
             name,
@@ -84,7 +75,9 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
             receiver
         );
 
-        OriginalNFT memory originalNFT = OriginalNFT(contractAddress, tokenId);
+        fractionsInitialized[address(fractions)] = true;
+
+        OriginalNFT memory originalNFT = OriginalNFT(contractAddress, tokenId, msg.sender);
         storedOriginal[address(fractions)] = originalNFT;
 
         emit TokenFractioned(address(fractions), fractionsNumber);
@@ -106,21 +99,10 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
         address receiver
     ) external returns (address) {
         require(
-            doesContractImplementInterface(
-                contractAddress,
-                ERC165_INTERFACE_ID
-            ),
-            "Contract does not support interface"
+            doesContractImplementInterface(contractAddress, ERC165_INTERFACE_ID), "Contract does not support interface"
         );
-        require(
-            IERC721(contractAddress).getApproved(tokenId) == address(this),
-            "token transfer not approved !"
-        );
-        IERC721(contractAddress).transferFrom(
-            msg.sender,
-            burningAddress,
-            tokenId
-        );
+        require(IERC721(contractAddress).getApproved(tokenId) == address(this), "token transfer not approved !");
+        IERC721(contractAddress).transferFrom(msg.sender, burningAddress, tokenId);
 
         Fractions fractions = new Fractions(
             name,
@@ -128,6 +110,11 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
             fractionsNumber,
             receiver
         );
+
+        fractionsInitialized[address(fractions)] = true;
+
+        OriginalNFT memory originalNFT = OriginalNFT(contractAddress, tokenId, msg.sender);
+        storedOriginal[address(fractions)] = originalNFT;
 
         emit TokenFractioned(address(fractions), fractionsNumber);
 
@@ -140,47 +127,42 @@ contract BricksCore is Initializable, BricksQuery, IERCId {
      * @param   fractionsContractAddress  . the address of the Fractions contract
      * @param   receiver  . The receiver of the Original NFT
      */
-    function assemble(
-        address fractionsContractAddress,
-        address receiver
-    ) external {
+    function assemble(address fractionsContractAddress, address receiver) external {
         require(
-            IERC20(fractionsContractAddress).allowance(
-                msg.sender,
-                address(this)
-            ) == IERC20(fractionsContractAddress).totalSupply(),
+            fractionsInitialized[fractionsContractAddress] == true,
+            "specified address is not a Fractions contract address"
+        );
+
+        require(
+            IERC20(fractionsContractAddress).allowance(msg.sender, address(this))
+                == IERC20(fractionsContractAddress).totalSupply(),
             "You need to gather all fractions to get the NFT"
         );
 
         IERC20(fractionsContractAddress).transferFrom(
-            msg.sender,
-            address(this),
-            IERC20(fractionsContractAddress).totalSupply()
+            msg.sender, address(this), IERC20(fractionsContractAddress).totalSupply()
         );
 
-        IFractions(fractionsContractAddress).burn(
-            address(this),
-            IERC20(fractionsContractAddress).totalSupply()
-        );
+        IFractions(fractionsContractAddress).burn(address(this), IERC20(fractionsContractAddress).totalSupply());
 
-        OriginalNFT memory originalNFT = storedOriginal[
-            fractionsContractAddress
-        ];
+        OriginalNFT memory originalNFT = storedOriginal[fractionsContractAddress];
 
-        IVault(vaultAddress).transferOriginal(
-            originalNFT.contractAddress,
-            originalNFT.tokenId,
-            receiver
-        );
+        IVault(vaultAddress).transferOriginal(originalNFT.contractAddress, originalNFT.tokenId, receiver);
 
         emit TokenAssembled(originalNFT.contractAddress, originalNFT.tokenId);
     }
 
-    function getStoredOriginal(
-        address fractionsAddress
-    ) public view returns (address, uint256) {
+    function getStoredOriginal(address fractionsAddress) public view returns (address, uint256, address) {
         OriginalNFT memory originalNFT = storedOriginal[fractionsAddress];
 
-        return (originalNFT.contractAddress, originalNFT.tokenId);
+        return (originalNFT.contractAddress, originalNFT.tokenId, originalNFT.originalOwner);
+    }
+
+    function getFractionsInitialized(address contractAddress) public view returns (bool) {
+        if (fractionsInitialized[contractAddress] == true) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
