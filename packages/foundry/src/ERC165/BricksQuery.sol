@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 contract BricksQuery {
@@ -5,10 +6,7 @@ contract BricksQuery {
     bytes4 constant ERC165_ID = 0x01ffc9a7;
     bytes4 constant IFRACTIONS_ID = 0x7d8d2ffd;
 
-    function doesContractImplementInterface(
-        address _contract,
-        bytes4 _interfaceId
-    ) public view returns (bool) {
+    function doesContractImplementInterface(address _contract, bytes4 _interfaceId) public view returns (bool) {
         uint256 success;
         uint256 result;
 
@@ -35,10 +33,11 @@ contract BricksQuery {
         return false;
     }
 
-    function noThrowCall(
-        address _contract,
-        bytes4 _interfaceId
-    ) internal view returns (uint256 success, uint256 result) {
+    function noThrowCall(address _contract, bytes4 _interfaceId)
+        internal
+        view
+        returns (uint256 success, uint256 result)
+    {
         bytes4 erc165ID = ERC165_ID;
 
         assembly {
@@ -46,14 +45,15 @@ contract BricksQuery {
             mstore(x, erc165ID) // Place signature at beginning of empty storage
             mstore(add(x, 0x04), _interfaceId) // Place first argument directly next to signature
 
-            success := staticcall(
-                30000, // 30k gas
-                _contract, // To addr
-                x, // Inputs are stored at location x
-                0x24, // Inputs are 36 bytes long
-                x, // Store output over input (saves space)
-                0x20
-            ) // Outputs are 32 bytes long
+            success :=
+                staticcall(
+                    30000, // 30k gas
+                    _contract, // To addr
+                    x, // Inputs are stored at location x
+                    0x24, // Inputs are 36 bytes long
+                    x, // Store output over input (saves space)
+                    0x20
+                ) // Outputs are 32 bytes long
 
             result := mload(x) // Load the result
         }
