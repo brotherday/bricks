@@ -24,6 +24,12 @@ contract Pool {
         _;
     }
 
+    /**
+     * @notice  . deposit fractions so users can buy them in a specied price
+     * @param   fractionsContractAddress  . the address of the Fractions contract
+     * @param   amount  . the amount of fractions you want to sell
+     * @param   unitPrice  . the price of the fractions unit
+     */
     function deposit(address fractionsContractAddress, uint256 amount, uint256 unitPrice)
         external
         onlyFractionsContract(fractionsContractAddress)
@@ -38,6 +44,11 @@ contract Pool {
         fractionsUnitPrice[fractionsContractAddress] = unitPrice;
     }
 
+    /**
+     * @notice  . users can buy fractions they want
+     * @param   fractionsContractAddress  . the address of the Fractions contract
+     * @param   amount  . the amount of fractions to but
+     */
     function buy(address fractionsContractAddress, uint256 amount)
         external
         payable
@@ -57,6 +68,10 @@ contract Pool {
         ownersBalances[originalOwner] += msg.value;
     }
 
+    /**
+     * @notice  . owners can withdraw they funds from selling fractions
+     * @param   fractionsContractAddress  . the address of the Fractions contract user owns
+     */
     function withdraw(address fractionsContractAddress) external onlyFractionsContract(fractionsContractAddress) {
         (,, address originalOwner) = bricksCore.getStoredOriginal(fractionsContractAddress);
         require(msg.sender == originalOwner, "Only original owner can withdraw funds");
