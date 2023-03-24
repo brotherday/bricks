@@ -30,6 +30,8 @@ contract PoolTest is Test {
     uint256 public constant AMOUNT_TO_DEPOSIT_IN_POOL = 4;
     uint256 public constant UNIT_PRICE = 1000;
 
+    uint256 public constant AMOUNT_TO_BUY = 1;
+
     function setUp() public {
         bricksCore = new BricksCore();
         proxyAdmin = new ProxyAdmin();
@@ -44,6 +46,8 @@ contract PoolTest is Test {
         mockERC721 = new MockERC721();
         mockERC20 = new MockERC20();
     }
+
+    receive() external payable {}
 
     function approveAndFraction() internal returns (address) {
         mockERC721.approve(address(bricksCore), 0);
@@ -68,10 +72,10 @@ contract PoolTest is Test {
         assertEq(IERC20(fractions).balanceOf(address(pool)), AMOUNT_TO_DEPOSIT_IN_POOL);
     }
 
-    function testDepositIncreaseFractionsBalances() public {
+    function testDepositIncreasefractionsAvailableAmount() public {
         address fractions = approveAndDeposit();
 
-        assertEq(pool.fractionsBalances(fractions), AMOUNT_TO_DEPOSIT_IN_POOL);
+        assertEq(pool.fractionsAvailableAmount(fractions), AMOUNT_TO_DEPOSIT_IN_POOL);
     }
 
     function testDepositSETFractionsUnitPrices() public {
@@ -90,7 +94,6 @@ contract PoolTest is Test {
     function testCannotDepositNonOwner() public {
         address fractions = approveAndDeposit();
 
-        vm.expectRevert("Only Original can call this function");
         vm.startPrank(nonOwner);
         MockERC721 mockERC721Two = new MockERC721();
         mockERC721Two.approve(address(bricksCore), 0);
@@ -99,6 +102,83 @@ contract PoolTest is Test {
         IERC20(fractions).approve(address(pool), AMOUNT_TO_DEPOSIT_IN_POOL);
         vm.stopPrank();
 
-        pool.deposit(fractions, AMOUNT_TO_DEPOSIT_IN_POOL, UNIT_PRICE);
+        vm.expectRevert("Only original owner can call this function");
+        pool.deposit(fractionsTwo, AMOUNT_TO_DEPOSIT_IN_POOL, UNIT_PRICE);
+    }
+
+    function testBuyDecreasesFractionsAvailableAmount() public {
+        address fractions = approveAndDeposit();
+
+        vm.prank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        pool.buy{value: UNIT_PRICE}(fractions, AMOUNT_TO_BUY);
+        assertEq(pool.fractionsAvailableAmount(fractions), AMOUNT_TO_DEPOSIT_IN_POOL - AMOUNT_TO_BUY);
+    }
+
+    function testBuyTransferFractionsToBuyer() public {
+        address fractions = approveAndDeposit();
+
+        vm.prank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        pool.buy{value: UNIT_PRICE}(fractions, AMOUNT_TO_BUY);
+        assertEq(IERC20(fractions).balanceOf(address(1)), AMOUNT_TO_BUY);
+    }
+
+    function testBuyTransferIncreasesOwnersBalances() public {
+        address fractions = approveAndDeposit();
+
+        vm.prank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        pool.buy{value: UNIT_PRICE}(fractions, AMOUNT_TO_BUY);
+        assertEq(pool.ownersBalances(address(this)), UNIT_PRICE);
+    }
+
+    function testCannotBuyWithInsufficientFunds() public {
+        address fractions = approveAndDeposit();
+
+        vm.prank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        vm.expectRevert("insufficient fund");
+        pool.buy{value: 999}(fractions, AMOUNT_TO_BUY);
+    }
+
+    function testCannotBuyAnAmountThatExceedsBalance() public {
+        address fractions = approveAndDeposit();
+
+        vm.prank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        vm.expectRevert("amount exceeds balance");
+        pool.buy{value: UNIT_PRICE * 5}(fractions, 5);
+    }
+
+    function testWithdrawSetsBalanceToZero() public {
+        address fractions = approveAndDeposit();
+
+        uint256 initialBalance = address(this).balance;
+
+        vm.startPrank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        pool.buy{value: UNIT_PRICE}(fractions, AMOUNT_TO_BUY);
+
+        vm.stopPrank();
+        pool.withdraw(fractions);
+        assertEq(address(this).balance, initialBalance + UNIT_PRICE);
+    }
+
+    function testCannotWithdrawNonOwner() public {
+        address fractions = approveAndDeposit();
+
+        vm.startPrank(address(1));
+        vm.deal(address(1), 1 ether);
+
+        pool.buy{value: UNIT_PRICE}(fractions, AMOUNT_TO_BUY);
+        vm.expectRevert("Only original owner can withdraw funds");
+        pool.withdraw(fractions);
     }
 }
