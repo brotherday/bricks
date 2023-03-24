@@ -59,6 +59,14 @@ contract BricksCoreTest is Test {
         bricksCore.assemble(fractions, address(this));
     }
 
+    function testInitializeCreateNewVaultAndStoreAddress() public {
+        assertTrue(bricksCore.vaultAddress() != address(0));
+    }
+
+    function testInitializeCreateNewBurningContractAndStoreAddress() public {
+        assertTrue(bricksCore.burningAddress() != address(0));
+    }
+
     function testFractionTransferTokenToVault() public {
         approveAndFraction();
         assertEq(mockERC721.ownerOf(0), address(bricksCore.vaultAddress()));
