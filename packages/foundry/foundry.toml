@@ -8,6 +8,8 @@ libs = ['lib']
 [rpc_endpoints]
 sepolia = "${SEPOLIA_RPC_URL}"
 chiado = "${CHIADO_RPC_URL}"
+polygon_zkevm = "${POLYGON_ZKEVM_RPC_URL}"
+scroll_alpha = "${SCROLL_ALPHA_RPC_URL}"
 
 [etherscan]
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
