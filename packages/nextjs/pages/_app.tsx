@@ -1,7 +1,9 @@
+import * as React from 'react'
 import { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import { ChakraProvider } from '@chakra-ui/react'
 import NextNProgress from "nextjs-progressbar";
 import { Toaster } from "react-hot-toast";
 import { WagmiConfig } from "wagmi";
@@ -13,6 +15,7 @@ import { useAppStore } from "~~/services/store/store";
 import { wagmiClient } from "~~/services/web3/wagmiClient";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import "~~/styles/globals.css";
+import { BrowserRouter } from 'react-router-dom';
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const price = useEthPrice();
@@ -31,7 +34,10 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="relative flex flex-col flex-1">
-            <Component {...pageProps} />
+          
+            <ChakraProvider>
+              <Component {...pageProps} />
+            </ChakraProvider>
           </main>
           <Footer />
         </div>

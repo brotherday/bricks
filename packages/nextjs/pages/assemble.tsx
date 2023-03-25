@@ -1,10 +1,14 @@
 import React from 'react'
-
-const assemble = () => {
+import {
+  Button,
+} from '@chakra-ui/react'
+function assemble ()  {
   return (
-    <div>
-      assemble
-    </div>
+    <>
+      <div className="flex items-center flex-col flex-grow justify-center">
+        <Button colorScheme="blue" size-lg >Assemble</Button>
+      </div>
+    </>
   )
 }
 
