@@ -46,9 +46,10 @@ Bricks is deployed on:
 ## Future Improvements
 
 ### Marketplace
-
 Allow users to list fractions at a floor price which can be bid on by potential buyers.
 
-## BricksCore
+### BricksCore
+Accept more NFT standards e.g. ERC1155
 
-Accept other NFT standards e.g. ERC1155
+### UI/UX
+Improve the UI/UX to industry standard and better represent the product to end users
